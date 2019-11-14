@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+/*
+Repeated led_string
+  - LED state
+    - enum constant colour
+    - R
+    - G
+    - B
+Repeated specific_led
+  - LED by id
+    - LED state
+Controller state (PSU on/off, brightness)
+*/
+
+enum Color {
+  BLACK = 0;
+  BLUE = 1;
+  GREEN = 2;
+  RED = 3;
+  PURPLE = 4;
+}
+
+/* State of a single LED */
+message LedState {
+  Color color = 1;
+}
+
+message LedString {
+  repeated LedState leds = 1;
+}
+
+/* Global state of the LED controller */
+message GlobalState {
+
+}
+
+message ControlMessage {
+  GlobalState global_state = 1;
+  LedString led_string = 2;
+}

@@ -1,10 +1,32 @@
 #include "FastLED.h"
+#include "ext/nanopb/pb_decode.h"
+#include "proto/led.pb.h"
 
 #define NUM_LEDS 40
 // PSU_ON is active low
 #define PSU_ON 5
 
 // Started from https://github.com/FastLED/FastLED/wiki/Overview#quick-examples
+
+bool decode(uint8_t *buffer, uint32_t len) {
+  // https://github.com/nanopb/nanopb/blob/master/examples/simple/simple.c#L52
+
+  /* Allocate space for the decoded message. */
+  ControlMessage message = ControlMessage_init_zero;
+
+  /* Create a stream that reads from the buffer. */
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+
+  /* Now we are ready to decode the message. */
+  bool status = pb_decode(&stream, ControlMessage_fields, &message);
+
+  /* Check for errors... */
+  if (!status)
+  {
+      printf("Decoding failed: %s\n", PB_GET_ERROR(&stream));
+      return 1;
+  }
+}
 
 CRGB leds[NUM_LEDS];
 void setup() {
