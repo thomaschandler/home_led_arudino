@@ -6,7 +6,11 @@
 #define PSU_ON 5
 
 CRGB leds[NUM_LEDS];
+
 void setup() {
+  Serial.begin(115200);
+  Serial.setTimeout(1000);
+
   FastLED.addLeds<WS2812B, 2, GRB>(leds, NUM_LEDS);
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CRGB::Black; FastLED.show();
@@ -16,16 +20,34 @@ void setup() {
   digitalWrite(PSU_ON, LOW);
   // Let PSU voltage settle - otherwise latter LEDs might not get set correctly and will latch
   delay(500);
+}
 
-  LEDS.setBrightness(100);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Purple; FastLED.show();
-    delay(50);
+#define SER_BUF_SIZE 1000
+
+void serialHandle(uint8_t *buf, size_t len) {
+  decode(buf, len);
+  // Set LEDs
+  if (message.led_string.leds.color == Color_BLACK) {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black; FastLED.show();
+    }
   }
-  FastLED.show();
-  // Power down after 10s - until remote control is setup
-  delay(10000);
-  digitalWrite(PSU_ON, HIGH);
+  else {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Purple; FastLED.show();
+    }
+  }
+}
+
+void serialLoop(void) {
+  uint8_t buf[SER_BUF_SIZE];
+  memset(buf, 0, SER_BUF_SIZE);
+  // Read up to 1k, just hit timeout
+  size_t n_bytes = Serial.readBytes(buf, SER_BUF_SIZE);
+
+  if (n_bytes > 0) {
+    serialHandle(buf, n_bytes);
+  }
 }
 
 void loop() {
