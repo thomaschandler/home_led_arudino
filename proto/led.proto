@@ -26,6 +26,7 @@ message LedState {
   Color color = 1;
 }
 
+// TODO LedString -> LedStrip
 message LedString {
   repeated LedState leds = 1;
 }
