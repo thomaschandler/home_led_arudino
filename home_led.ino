@@ -1,5 +1,12 @@
+//#include <led.pb.h>
+//#include <proto.h>
+
 #include "FastLED.h"
 #include "proto/proto.h"
+
+// Linker tricks because including these as a library causes the build not to run. Yay Arduino IDE!
+#include "proto/led.pb.c"
+#include "proto/proto.c"
 
 #define NUM_LEDS 40
 // PSU_ON is active low
@@ -8,6 +15,12 @@
 CRGB leds[NUM_LEDS];
 
 void setup() {
+  pinMode(PSU_ON, OUTPUT);
+  digitalWrite(PSU_ON, LOW);
+
+  // Let PSU voltage settle - otherwise latter LEDs might not get set correctly and will latch
+  //delay(1000);
+
   Serial.begin(115200);
   Serial.setTimeout(1000);
 
@@ -16,26 +29,25 @@ void setup() {
     leds[i] = CRGB::Black; FastLED.show();
   }
   FastLED.show();
-  pinMode(PSU_ON, OUTPUT);
-  digitalWrite(PSU_ON, LOW);
-  // Let PSU voltage settle - otherwise latter LEDs might not get set correctly and will latch
-  delay(500);
+
+  // TEST LEDS
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Purple; FastLED.show();
+    LEDS.setBrightness(100);
+  }
+  FastLED.show();
 }
 
 #define SER_BUF_SIZE 1000
 
 void serialHandle(uint8_t *buf, size_t len) {
-  decode(buf, len);
+  uint8_t out[NUM_LEDS];
+  decode(buf, len, out, (uint32_t) NUM_LEDS);
   // Set LEDs
-  if (message.led_string.leds.color == Color_BLACK) {
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CRGB::Black; FastLED.show();
-    }
-  }
-  else {
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CRGB::Purple; FastLED.show();
-    }
+  for (int i = 0; i < NUM_LEDS; i++) {
+    // LED colors map directly to CRGB constants
+    leds[i] = out[i];
+    FastLED.show();
   }
 }
 
@@ -51,9 +63,5 @@ void serialLoop(void) {
 }
 
 void loop() {
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Purple; FastLED.show();
-    LEDS.setBrightness(100);
-  }
-  FastLED.show();
+  serialLoop();
 }

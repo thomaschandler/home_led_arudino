@@ -13,12 +13,16 @@ Repeated specific_led
 Controller state (PSU on/off, brightness)
 */
 
+/*
+Same constants as HTMLColorCode
+https://github.com/FastLED/FastLED/blob/311ed1df3f34c915aee219520dfaa44cc28762cf/pixeltypes.h#L752
+*/
 enum Color {
   BLACK = 0;
-  BLUE = 1;
-  GREEN = 2;
-  RED = 3;
-  PURPLE = 4;
+  BLUE = 0x0000FF;
+  GREEN = 0x008000;
+  RED = 0xFF0000;
+  PURPLE = 0x800080;
 }
 
 /* State of a single LED */
