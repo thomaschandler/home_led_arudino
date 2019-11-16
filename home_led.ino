@@ -3,10 +3,14 @@
 
 #include "FastLED.h"
 #include "proto/proto.h"
+#include "proto/util.h"
+
+// AutoReset https://playground.arduino.cc/Main/DisablingAutoResetOnSerialConnection/
 
 // Linker tricks because including these as a library causes the build not to run. Yay Arduino IDE!
 #include "proto/led.pb.c"
 #include "proto/proto.c"
+#include "proto/util.c"
 
 #define NUM_LEDS 40
 // PSU_ON is active low
@@ -16,7 +20,7 @@ CRGB leds[NUM_LEDS];
 
 void setup() {
   pinMode(PSU_ON, OUTPUT);
-  digitalWrite(PSU_ON, LOW);
+  digitalWrite(PSU_ON, HIGH);
 
   // Let PSU voltage settle - otherwise latter LEDs might not get set correctly and will latch
   //delay(1000);
@@ -25,28 +29,42 @@ void setup() {
   Serial.setTimeout(1000);
 
   FastLED.addLeds<WS2812B, 2, GRB>(leds, NUM_LEDS);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Black; FastLED.show();
-  }
-  FastLED.show();
-
+/*
   // TEST LEDS
+  LEDS.setBrightness(50);
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Purple; FastLED.show();
-    LEDS.setBrightness(100);
+    leds[i] = CRGB::Purple;
   }
   FastLED.show();
+  delay(10000);
+
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Black;
+  }
+  FastLED.show();
+  */
+  //digitalWrite(PSU_ON, HIGH);
+  // TODO: Protobuf?
+  Serial.println("READY");
 }
 
 #define SER_BUF_SIZE 1000
 
 void serialHandle(uint8_t *buf, size_t len) {
-  uint8_t out[NUM_LEDS];
+  // Color consts are enums - 32-bit
+  uint32_t out[NUM_LEDS];
+  memset(out, 0, NUM_LEDS*sizeof(uint32_t));
+  // TODO: Check decode success
   decode(buf, len, out, (uint32_t) NUM_LEDS);
+  //Serial.println((char*)out);
+  // power on
+  digitalWrite(PSU_ON, LOW);
   // Set LEDs
   for (int i = 0; i < NUM_LEDS; i++) {
     // LED colors map directly to CRGB constants
-    leds[i] = out[i];
+    // https://github.com/FastLED/FastLED/blob/dcbf39933f51a2a0e4dfa0a2b3af4f50040df5c9/pixelset.h#L74
+    // TODO: Despite this, cannot assign integer to leds array. Doesn't appear to be any constant helpers either...
+    leds[i] = map_pb_color_to_crgb(out[i]);
     FastLED.show();
   }
 }
@@ -58,6 +76,9 @@ void serialLoop(void) {
   size_t n_bytes = Serial.readBytes(buf, SER_BUF_SIZE);
 
   if (n_bytes > 0) {
+    //Serial.println("n_bytes > 0");
+    //Serial.println((char*)buf);
+    //Serial.println(n_bytes);
     serialHandle(buf, n_bytes);
   }
 }

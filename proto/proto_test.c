@@ -16,8 +16,9 @@ int main(int nargs, char *argv[]) {
   decode((uint8_t*)"\x12\x02\x0a\x00", 4, (uint8_t *)buf, BUF_SIZE);*/
   char data[] = { 0x12, 0x13, 0x0a, 0x05, 0x08, 0x80, 0x81, 0x80, 0x04, 0x0a, 0x05, 0x08, 0x80, 0x80, 0xfc, 0x07, 0x0a, 0x03, 0x08, 0xff, 0x01 };
   printf("Decode 2\n");
-  char buf2[BUF_SIZE];
-  decode((uint8_t*)data, 21, (uint8_t *)buf2, BUF_SIZE);
+  uint32_t buf2[BUF_SIZE];
+  memset(buf2, 0, BUF_SIZE*sizeof(uint32_t));
+  decode((uint8_t*)data, 21, buf2, BUF_SIZE);
 //  printf("led_string[0].leds[0].color: %d\n", message.led_string.leds.color);
   printf("Done\n");
 }

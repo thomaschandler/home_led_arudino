@@ -4,6 +4,6 @@
 #include "stdbool.h"
 #include "led.pb.h"
 
-bool decode(uint8_t *buffer, uint32_t len, uint8_t *out, uint32_t out_len);
+bool decode(uint8_t *buffer, uint32_t len, uint32_t *out, uint32_t out_len);
 
 #endif /* _PROTO_H_ */

@@ -10,7 +10,7 @@
 #endif
 
 struct output_buf {
-  uint8_t *out;
+  uint32_t *out;
   uint32_t out_len;
   uint32_t offset;
 };
@@ -58,7 +58,7 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
   return true;
 }
 
-bool decode(uint8_t *buffer, uint32_t len, uint8_t *out, uint32_t out_len) {
+bool decode(uint8_t *buffer, uint32_t len, uint32_t *out, uint32_t out_len) {
   // https://github.com/nanopb/nanopb/blob/master/examples/simple/simple.c#L52
 
   /* Allocate space for the decoded message. */
