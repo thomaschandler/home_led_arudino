@@ -28,8 +28,8 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
   while (stream->bytes_left) {
     // Enums are 32-bit
     // https://developers.google.com/protocol-buffers/docs/proto3#enum
-    uint64_t color = Color_BLACK;
-    if (!pb_decode_varint(stream, &color)) {
+    LedState led_state = LedState_init_zero;
+    if (!pb_decode(stream, LedState_fields, &led_state)) {
       return false;
     }
     // TODO: Truncate
@@ -37,7 +37,7 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
     // pb_skip_varint OR use pb_field_iter_begin or something
     // https://github.com/nanopb/nanopb/blob/b2d04dfceaac1dc35fcde2706e56d090222d2761/examples/using_union_messages/decode.c#L29
 #ifdef HAVE_STDIO
-  printf("color: %" PRIu64 "\n", color);
+  printf("led_state.color: %d\n", led_state.color);
 #endif
   }
   return true;
