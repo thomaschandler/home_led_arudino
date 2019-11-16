@@ -3,7 +3,7 @@
 # Pre-requisites
 
 - [nanopb](https://jpa.kapsi.fi/nanopb/download/)
-  - Download and unzip to `src/ext`. Rename to `nanopb`
+  - Download and unzip to `ext`. Rename to `nanopb`
   - OSX: `sudo easy_install pip; and sudo python -m pip install protobuf`
 - Setup [protocol buffers](https://developers.google.com/protocol-buffers/docs/gotutorial) for
 go
