@@ -9,6 +9,12 @@
 #include "inttypes.h"
 #endif
 
+struct output_buf {
+  uint8_t *out;
+  uint32_t out_len;
+  uint32_t offset;
+};
+
 // Started from https://github.com/FastLED/FastLED/wiki/Overview#quick-examples
 // For submessage decoding, based off union example:
 // https://github.com/nanopb/nanopb/blob/b2d04dfceaac1dc35fcde2706e56d090222d2761/examples/using_union_messages/decode.c#L18
@@ -25,6 +31,9 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
   printf("decode_leds bytes_left: %d\n", (int)stream->bytes_left);
 //  printf("field: %s\n", field);
 #endif
+
+  struct output_buf *out_state = (struct output_buf*) *arg;
+
   while (stream->bytes_left) {
     // Enums are 32-bit
     // https://developers.google.com/protocol-buffers/docs/proto3#enum
@@ -32,22 +41,34 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
     if (!pb_decode(stream, LedState_fields, &led_state)) {
       return false;
     }
-    // TODO: Truncate
-    // TODO: Fix color: 8 output for each legitimate value (use either
-    // pb_skip_varint OR use pb_field_iter_begin or something
     // https://github.com/nanopb/nanopb/blob/b2d04dfceaac1dc35fcde2706e56d090222d2761/examples/using_union_messages/decode.c#L29
 #ifdef HAVE_STDIO
   printf("led_state.color: %d\n", led_state.color);
 #endif
+
+    if (out_state->offset+1 < out_state->out_len) {
+      out_state->out[out_state->offset++] = led_state.color;
+    }
+    else {
+      // More LED states RX'd than LEDs, stop iterating
+      break;
+    }
   }
+
   return true;
 }
 
-bool decode(uint8_t *buffer, uint32_t len, ControlMessage *out) {
+bool decode(uint8_t *buffer, uint32_t len, uint8_t *out, uint32_t out_len) {
   // https://github.com/nanopb/nanopb/blob/master/examples/simple/simple.c#L52
 
   /* Allocate space for the decoded message. */
   ControlMessage message = ControlMessage_init_zero;
+
+  struct output_buf arg = {
+    .out = out,
+    .out_len = out_len,
+    .offset = 0
+  };
 
   // Set up decode callback
   pb_callback_t leds_callback = {
@@ -55,7 +76,7 @@ bool decode(uint8_t *buffer, uint32_t len, ControlMessage *out) {
     .funcs = {
       .decode = &decode_leds
     },
-    .arg = NULL
+    .arg = &arg
   };
   message.led_string.leds = leds_callback;
 //  message.led_string = leds_callback;
