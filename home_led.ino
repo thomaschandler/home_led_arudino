@@ -57,8 +57,22 @@ void serialHandle(uint8_t *buf, size_t len) {
   // TODO: Check decode success
   decode(buf, len, out, (uint32_t) NUM_LEDS);
   //Serial.println((char*)out);
-  // power on
-  digitalWrite(PSU_ON, LOW);
+  bool need_psu = false;
+  // Pre-scan to make sure PSU has enough time to settle. Rough, but it'll do
+  for (int i = 0; i < len; i++) {
+    if (out[i] != CRGB::Black) {
+      // Need PSU
+      need_psu = true;
+    }
+  }
+  if (need_psu) {
+    // power on
+    digitalWrite(PSU_ON, LOW);
+  }
+  else {
+    // power on
+    digitalWrite(PSU_ON, HIGH);
+  }
   // Set LEDs
   for (int i = 0; i < NUM_LEDS; i++) {
     // LED colors map directly to CRGB constants
