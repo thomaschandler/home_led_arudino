@@ -18,7 +18,12 @@ int main(int nargs, char *argv[]) {
   printf("Decode 2\n");
   uint32_t buf2[BUF_SIZE];
   memset(buf2, 0, BUF_SIZE*sizeof(uint32_t));
-  decode((uint8_t*)data, 21, buf2, BUF_SIZE);
+  decoded_data_t data_out = {
+    .colors = buf2,
+    .num_colors = BUF_SIZE
+  };
+
+  decode((uint8_t*)data, 21, &data_out);
 //  printf("led_string[0].leds[0].color: %d\n", message.led_string.leds.color);
   printf("Done\n");
 }

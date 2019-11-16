@@ -2,7 +2,6 @@
 //#include <proto.h>
 
 #include "FastLED.h"
-#include "proto/proto.h"
 #include "proto/util.h"
 
 // AutoReset https://playground.arduino.cc/Main/DisablingAutoResetOnSerialConnection/
@@ -54,13 +53,17 @@ void serialHandle(uint8_t *buf, size_t len) {
   // Color consts are enums - 32-bit
   uint32_t out[NUM_LEDS];
   memset(out, 0, NUM_LEDS*sizeof(uint32_t));
+  decoded_data_t data_out = {
+    .colors = out,
+    .num_colors = NUM_LEDS
+  };
   // TODO: Check decode success
-  decode(buf, len, out, (uint32_t) NUM_LEDS);
+  decode(buf, len, &data_out);
   //Serial.println((char*)out);
   bool need_psu = false;
   // Pre-scan to make sure PSU has enough time to settle. Rough, but it'll do
   for (int i = 0; i < len; i++) {
-    if (out[i] != CRGB::Black) {
+    if (data_out.colors[i] != CRGB::Black) {
       // Need PSU
       need_psu = true;
     }
@@ -78,7 +81,7 @@ void serialHandle(uint8_t *buf, size_t len) {
     // LED colors map directly to CRGB constants
     // https://github.com/FastLED/FastLED/blob/dcbf39933f51a2a0e4dfa0a2b3af4f50040df5c9/pixelset.h#L74
     // TODO: Despite this, cannot assign integer to leds array. Doesn't appear to be any constant helpers either...
-    leds[i] = map_pb_color_to_crgb(out[i]);
+    leds[i] = map_pb_color_to_crgb(data_out.colors[i]);
     FastLED.show();
   }
 }

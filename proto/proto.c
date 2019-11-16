@@ -58,15 +58,15 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
   return true;
 }
 
-bool decode(uint8_t *buffer, uint32_t len, uint32_t *out, uint32_t out_len) {
+bool decode(uint8_t *buffer, uint32_t len, decoded_data_t *data_out) {
   // https://github.com/nanopb/nanopb/blob/master/examples/simple/simple.c#L52
 
   /* Allocate space for the decoded message. */
   ControlMessage message = ControlMessage_init_zero;
 
   struct output_buf arg = {
-    .out = out,
-    .out_len = out_len,
+    .out = data_out->colors,
+    .out_len = data_out->num_colors,
     .offset = 0
   };
 
