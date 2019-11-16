@@ -37,7 +37,7 @@ message LedString {
 
 /* Global state of the LED controller */
 message GlobalState {
-
+  uint32 brightness = 1;
 }
 
 message ControlMessage {

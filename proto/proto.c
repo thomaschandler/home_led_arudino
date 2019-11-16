@@ -93,9 +93,11 @@ bool decode(uint8_t *buffer, uint32_t len, decoded_data_t *data_out) {
 #ifdef HAVE_STDIO
     printf("Decoding failed: %s\n", PB_GET_ERROR(&stream));
 #endif
+
   return 1;
   }
 
+  data_out->brightness = message.global_state.brightness;
 #if HAVE_STDIO
 //  printf("message.has_global_state: %d\n", message.global_state);
 //  printf("message.led_string: %d\n", message.led_string);

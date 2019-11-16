@@ -59,8 +59,8 @@ void serialHandle(uint8_t *buf, size_t len) {
   };
   // TODO: Check decode success
   decode(buf, len, &data_out);
-  //Serial.println((char*)out);
-  bool need_psu = false;
+  // Check PSU requirement if changing LED color. Brightness != 0 should turn PSU on
+  bool need_psu = data_out.brightness != 0 ? true : false ;
   // Pre-scan to make sure PSU has enough time to settle. Rough, but it'll do
   for (int i = 0; i < len; i++) {
     if (data_out.colors[i] != CRGB::Black) {
@@ -76,13 +76,24 @@ void serialHandle(uint8_t *buf, size_t len) {
     // power on
     digitalWrite(PSU_ON, HIGH);
   }
-  // Set LEDs
-  for (int i = 0; i < NUM_LEDS; i++) {
-    // LED colors map directly to CRGB constants
-    // https://github.com/FastLED/FastLED/blob/dcbf39933f51a2a0e4dfa0a2b3af4f50040df5c9/pixelset.h#L74
-    // TODO: Despite this, cannot assign integer to leds array. Doesn't appear to be any constant helpers either...
-    leds[i] = map_pb_color_to_crgb(data_out.colors[i]);
+  //Serial.println((char*)out);
+  // If brightness is included, only change that. Don't update colors
+  if (data_out.brightness != 0) {
+    LEDS.setBrightness(data_out.brightness < 100 ? data_out.brightness : 100);
     FastLED.show();
+  }
+  // If PSU is needed, some LEDs may need updates
+  // If all leds are off, PSU isn't needed. Don't overwrite color state, as we need
+  // to recover from 0% brightness without an ON signal (slide the brightness to 0% then up again)
+  else if (need_psu) {
+    // Set LEDs
+    for (int i = 0; i < NUM_LEDS; i++) {
+      // LED colors map directly to CRGB constants
+      // https://github.com/FastLED/FastLED/blob/dcbf39933f51a2a0e4dfa0a2b3af4f50040df5c9/pixelset.h#L74
+      // TODO: Despite this, cannot assign integer to leds array. Doesn't appear to be any constant helpers either...
+      leds[i] = map_pb_color_to_crgb(data_out.colors[i]);
+      FastLED.show();
+    }
   }
 }
 
