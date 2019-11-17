@@ -28,6 +28,7 @@ enum Color {
 /* State of a single LED */
 message LedState {
   Color color = 1;
+  uint32 hue = 2; /* Expected to conform to FastLED HSV Colors (0-255) https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors */
 }
 
 // TODO LedString -> LedStrip
