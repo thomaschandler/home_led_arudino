@@ -4,8 +4,14 @@
 #include "stdbool.h"
 #include "led.pb.h"
 
+enum color_fmt {
+  COLOR_CONST, /* Use constant values */
+  COLOR_HUE /* Use FastLED HSV values */
+};
+
 struct decoded_data {
   uint32_t *colors;
+  enum color_fmt color_fmt;
   uint32_t num_colors;
   uint32_t brightness;
 };

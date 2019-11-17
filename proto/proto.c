@@ -47,7 +47,7 @@ bool decode_leds(pb_istream_t *stream, const pb_field_t *field, void **arg) {
 #endif
 
     if (out_state->offset+1 < out_state->out_len) {
-      out_state->out[out_state->offset++] = led_state.color;
+      out_state->out[out_state->offset++] = led_state.hue;
     }
     else {
       // More LED states RX'd than LEDs, stop iterating
@@ -97,6 +97,7 @@ bool decode(uint8_t *buffer, uint32_t len, decoded_data_t *data_out) {
   return 1;
   }
 
+  data_out->color_fmt = COLOR_HUE;
   data_out->brightness = message.global_state.brightness;
 #if HAVE_STDIO
 //  printf("message.has_global_state: %d\n", message.global_state);

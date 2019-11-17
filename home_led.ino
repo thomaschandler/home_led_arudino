@@ -55,6 +55,7 @@ void serialHandle(uint8_t *buf, size_t len) {
   memset(out, 0, NUM_LEDS*sizeof(uint32_t));
   decoded_data_t data_out = {
     .colors = out,
+    .color_fmt = COLOR_CONST,
     .num_colors = NUM_LEDS
   };
   // TODO: Check decode success
@@ -63,9 +64,13 @@ void serialHandle(uint8_t *buf, size_t len) {
   bool need_psu = data_out.brightness != 0 ? true : false ;
   // Pre-scan to make sure PSU has enough time to settle. Rough, but it'll do
   for (int i = 0; i < len; i++) {
-    if (data_out.colors[i] != CRGB::Black) {
+    // TODO: Need global state to communicate on/off. For now, colors will conveniently still show
+    // Black when OFF in Home app (thanks protobuf)
+    if ((/*data_out.color_fmt == COLOR_CONST && */data_out.colors[i] != CRGB::Black)
+      /*|| data_out.color_fmt == COLOR_HUE*/) {
       // Need PSU
       need_psu = true;
+      break;
     }
   }
   if (need_psu) {
@@ -87,12 +92,20 @@ void serialHandle(uint8_t *buf, size_t len) {
   // to recover from 0% brightness without an ON signal (slide the brightness to 0% then up again)
   else if (need_psu) {
     // Set LEDs
-    for (int i = 0; i < NUM_LEDS; i++) {
-      // LED colors map directly to CRGB constants
-      // https://github.com/FastLED/FastLED/blob/dcbf39933f51a2a0e4dfa0a2b3af4f50040df5c9/pixelset.h#L74
-      // TODO: Despite this, cannot assign integer to leds array. Doesn't appear to be any constant helpers either...
-      leds[i] = map_pb_color_to_crgb(data_out.colors[i]);
-      FastLED.show();
+    if (data_out.color_fmt == COLOR_HUE) {
+      for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i].setHue(data_out.colors[i]);
+        FastLED.show();
+      }
+    }
+    else {
+      for (int i = 0; i < NUM_LEDS; i++) {
+        // LED colors map directly to CRGB constants
+        // https://github.com/FastLED/FastLED/blob/dcbf39933f51a2a0e4dfa0a2b3af4f50040df5c9/pixelset.h#L74
+        // TODO: Despite this, cannot assign integer to leds array. Doesn't appear to be any constant helpers either...
+        leds[i] = map_pb_color_to_crgb(data_out.colors[i]);
+        FastLED.show();
+      }
     }
   }
 }
